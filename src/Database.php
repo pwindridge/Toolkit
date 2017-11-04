@@ -58,7 +58,11 @@ class Database
 			$sth = $this->dbh->query($sql);
 		}
 
-		return $sth->fetchAll(\PDO::FETCH_ASSOC);
+		if ($sth) {
+    		return $sth->fetchAll(\PDO::FETCH_ASSOC);
+		} else {
+    		return null;
+		}
     }
 
     public function insert($parameters)

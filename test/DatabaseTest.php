@@ -109,4 +109,28 @@ CREATEQUERY;
 		);
 		$this->assertEquals($expected, $this->db->select($parameters));
 	}
+
+	/**
+	 * @test
+	 */
+	public function QueryReturnsNoRecords() {
+		$parameters = array(
+			'fields'=>array('*'),
+			'table'=>'No table'
+		);
+		$this->assertNull($this->db->select($parameters));
+	}
+
+	/**
+	 * @test
+	 * @expectedException PDOException
+	 */
+	public function BadConnectionInformation() {
+		$cfg['db']['host'] = 'Badlocalhost';
+		$cfg['db']['db'] = 'SomeDatabase';
+		$cfg['db']['user'] = 'SomeUser';
+		$cfg['db']['pass'] = 'SomePassword';
+
+		$db = new Database($cfg);
+	}
 }
