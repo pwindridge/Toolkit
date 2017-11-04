@@ -5,6 +5,7 @@
  * Date: 01/11/2017
  * Time: 13:06
  */
+
 use \Toolkit\Database;
 
 class DatabaseTest extends PHPUnit_Framework_TestCase {
@@ -20,7 +21,7 @@ class DatabaseTest extends PHPUnit_Framework_TestCase {
 
 		$this->dbh = new PDO(
 			'mysql:host=' . $cfg['db']['host'] .
-			';dbname='. $cfg['db']['db'],
+			';dbname=' . $cfg['db']['db'],
 			$cfg['db']['user'],
 			$cfg['db']['pass']
 		);
@@ -55,12 +56,12 @@ CREATEQUERY;
 	 */
 	public function SimpleSelect() {
 		$parameters = array(
-			'fields'=>array('*'),
-			'table'=>'testtable'
+			'fields' => array('*'),
+			'table' => 'testtable'
 		);
 		$expected = array(
-			array('Id'=>1, 'FirstName'=>'Philip', 'Surname'=>'Windridge'),
-			array('Id'=>2, 'FirstName'=>'Robin', 'Surname'=>'Oldham')
+			array('Id' => 1, 'FirstName' => 'Philip', 'Surname' => 'Windridge'),
+			array('Id' => 2, 'FirstName' => 'Robin', 'Surname' => 'Oldham')
 		);
 		$this->assertEquals($expected, $this->db->select($parameters));
 	}
@@ -70,12 +71,12 @@ CREATEQUERY;
 	 */
 	public function SelectWithTwoFields() {
 		$parameters = array(
-			'fields'=>array('FirstName', 'Surname'),
-			'table'=>'testtable'
+			'fields' => array('FirstName', 'Surname'),
+			'table' => 'testtable'
 		);
 		$expected = array(
-			array('FirstName'=>'Philip', 'Surname'=>'Windridge'),
-			array('FirstName'=>'Robin', 'Surname'=>'Oldham')
+			array('FirstName' => 'Philip', 'Surname' => 'Windridge'),
+			array('FirstName' => 'Robin', 'Surname' => 'Oldham')
 		);
 		$this->assertEquals($expected, $this->db->select($parameters));
 	}
@@ -85,16 +86,16 @@ CREATEQUERY;
 	 */
 	public function SelectWithSimpleCondition() {
 		$parameters = array(
-			'fields'=>array('FirstName', 'Surname'),
-			'table'=>'testtable',
-			'conditions'=>array(
-				'fieldValue'=>array('FirstName'=>'Robin'),
-				'comparison'=>array('='),
-				'valueType'=>array('string')
+			'fields' => array('FirstName', 'Surname'),
+			'table' => 'testtable',
+			'conditions' => array(
+				'fieldValue' => array('FirstName' => 'Robin'),
+				'comparison' => array('='),
+				'valueType' => array('string')
 			)
 		);
 		$expected = array(
-			array('FirstName'=>'Robin', 'Surname'=>'Oldham')
+			array('FirstName' => 'Robin', 'Surname' => 'Oldham')
 		);
 		$this->assertEquals($expected, $this->db->select($parameters));
 	}
@@ -104,18 +105,18 @@ CREATEQUERY;
 	 */
 	public function SelectWithTwoConditions() {
 		$parameters = array(
-			'fields'=>array('FirstName', 'Surname'),
-			'table'=>'testtable',
-			'conditions'=>array(
-				'fieldValue'=>array(
-					'FirstName'=>'Philip', 'Surname'=>'Windridge'
+			'fields' => array('FirstName', 'Surname'),
+			'table' => 'testtable',
+			'conditions' => array(
+				'fieldValue' => array(
+					'FirstName' => 'Philip', 'Surname' => 'Windridge'
 				),
-				'comparison'=>array('=', '='),
-				'valueType'=>array('string', 'string')
+				'comparison' => array('=', '='),
+				'valueType' => array('string', 'string')
 			)
 		);
 		$expected = array(
-			array('FirstName'=>'Philip', 'Surname'=>'Windridge')
+			array('FirstName' => 'Philip', 'Surname' => 'Windridge')
 		);
 		$this->assertEquals($expected, $this->db->select($parameters));
 	}
@@ -125,8 +126,8 @@ CREATEQUERY;
 	 */
 	public function QueryReturnsNoRecords() {
 		$parameters = array(
-			'fields'=>array('*'),
-			'table'=>'No table'
+			'fields' => array('*'),
+			'table' => 'No table'
 		);
 		$this->assertNull($this->db->select($parameters));
 	}
@@ -142,5 +143,38 @@ CREATEQUERY;
 		$cfg['db']['pass'] = 'SomePassword';
 
 		$db = new Database($cfg);
+	}
+
+	/**
+	 * @test
+	 * @expectedException Exception
+	 * @expectedExceptionMessage Missing value types for conditions.
+	 */
+	public function WhereConditionWithNoValueTypesException() {
+		$parameters = array(
+			'table' => 'testtable',
+			'conditions' => array(
+				'fieldValue' => array('FirstName' => 'Philip'),
+				'comparison' => array('=')
+			)
+		);
+		$this->db->select($parameters);
+	}
+
+	/**
+	 * @test
+	 * @expectedException Exception
+	 * @expectedExceptionMessage Number of value types and their values don't match
+	 */
+	public function MismatchBetweenValueTypesAndValuesException() {
+		$parameters = array(
+			'table' => 'testtable',
+			'conditions' => array(
+				'fieldValue' => array('FirstName' => 'Philip', 'Surname' => 'Windridge'),
+				'comparison' => array('='),
+				'valueType' => array('string')
+			)
+		);
+		$this->db->select($parameters);
 	}
 }

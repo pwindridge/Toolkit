@@ -20,7 +20,7 @@ class Database
     {
     	$fields = array('*');
 
-    	if ($parameters['fields']) {
+    	if (isset($parameters['fields'])) {
 			if($parameters['fields'][0] != '*') {
 				$fields = array();
 				foreach($parameters['fields'] as $field) {
@@ -31,7 +31,7 @@ class Database
     	$sql = 'SELECT ' . implode(', ', $fields) .
 			' FROM `' . $parameters['table'] . '`';
 
-    	if (isset($parameters['conditions'])) {
+    	if (isset($parameters['conditions']['fieldValue'])) {
     		$sth = $this->prepareWithWhereConditions(
     			$parameters['conditions'],
 				$sql
@@ -52,27 +52,27 @@ class Database
 		$types = array();
 		$values = array();
 
-		if (
-			count($conditions['fieldValue']) <>
-			count($conditions['valueType'])) {
-			throw new \Exception(
-				'Number of value types and values don\'t match.'
-			);
-		}
-
-		if (isset($conditions['valueType'])) {
-			foreach ($conditions['valueType'] as $type) {
-				if ($type == 'string') {
-					$types[] = \PDO::PARAM_STR;
-				} else {
-					$types[] = \PDO::PARAM_INT;
-				}
-			}
-		} else {
+		if (!isset($conditions['valueType'])) {
 			throw new \Exception(
 				'Missing value types for conditions.'
 			);
 		}
+		if (
+			count($conditions['fieldValue']) !=
+			count($conditions['valueType'])) {
+			throw new \Exception(
+				'Number of value types and their values don\'t match.'
+			);
+		}
+
+		foreach ($conditions['valueType'] as $type) {
+			if ($type == 'string') {
+				$types[] = \PDO::PARAM_STR;
+			} else {
+				$types[] = \PDO::PARAM_INT;
+			}
+		}
+
 		$count = 0;
 		foreach ($conditions['fieldValue'] as $field=>$value) {
 			$values[] = $value;
