@@ -87,7 +87,11 @@ CREATEQUERY;
 		$parameters = array(
 			'fields'=>array('FirstName', 'Surname'),
 			'table'=>'testtable',
-			'conditions'=>array('FirstName'=>'Robin')
+			'conditions'=>array(
+				'fieldValue'=>array('FirstName'=>'Robin'),
+				'comparison'=>array('='),
+				'valueType'=>array('string')
+			)
 		);
 		$expected = array(
 			array('FirstName'=>'Robin', 'Surname'=>'Oldham')
@@ -102,7 +106,13 @@ CREATEQUERY;
 		$parameters = array(
 			'fields'=>array('FirstName', 'Surname'),
 			'table'=>'testtable',
-			'conditions'=>array('FirstName'=>'Philip', 'Surname'=>'Windridge')
+			'conditions'=>array(
+				'fieldValue'=>array(
+					'FirstName'=>'Philip', 'Surname'=>'Windridge'
+				),
+				'comparison'=>array('=', '='),
+				'valueType'=>array('string', 'string')
+			)
 		);
 		$expected = array(
 			array('FirstName'=>'Philip', 'Surname'=>'Windridge')

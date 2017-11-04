@@ -32,28 +32,10 @@ class Database
 			' FROM `' . $parameters['table'] . '`';
 
     	if (isset($parameters['conditions'])) {
-    		$fields = array();
-    		$types = array();
-    		$values = array();
-
-    		foreach ($parameters['conditions'] as $field=>$value) {
-    			if(is_numeric($value)) {
-    				$types[] = \PDO::PARAM_INT;
-				} else {
-    				$types[] = \PDO::PARAM_STR;
-				}
-				$values[] = $value;
-				$fields[] = '`' . $field . '` = ?';
-			}
-    		$sql .= ' WHERE ' . implode(' AND ', $fields);
-
-    		$sth = $this->dbh->prepare($sql);
-
-    		for ($i = 0; $i < count($parameters['conditions']); $i++) {
-    			$sth->bindValue(1 + $i, $values[$i], $types[$i]);
-			}
-
-			$sth->execute();
+    		$sth = $this->prepareWithWhereConditions(
+    			$parameters['conditions'],
+				$sql
+			);
 		} else {
 			$sth = $this->dbh->query($sql);
 		}
@@ -64,6 +46,52 @@ class Database
     		return null;
 		}
     }
+
+    private function prepareWithWhereConditions($conditions, $sql) {
+		$fields = array();
+		$types = array();
+		$values = array();
+
+		if (
+			count($conditions['fieldValue']) <>
+			count($conditions['valueType'])) {
+			throw new \Exception(
+				'Number of value types and values don\'t match.'
+			);
+		}
+
+		if (isset($conditions['valueType'])) {
+			foreach ($conditions['valueType'] as $type) {
+				if ($type == 'string') {
+					$types[] = \PDO::PARAM_STR;
+				} else {
+					$types[] = \PDO::PARAM_INT;
+				}
+			}
+		} else {
+			throw new \Exception(
+				'Missing value types for conditions.'
+			);
+		}
+		$count = 0;
+		foreach ($conditions['fieldValue'] as $field=>$value) {
+			$values[] = $value;
+			$fields[] = '`' . $field . '` ' .
+				$conditions['comparison'][$count++] .
+				' ?';
+		}
+		$sql .= ' WHERE ' . implode(' AND ', $fields);
+
+		$sth = $this->dbh->prepare($sql);
+
+		for ($i = 0; $i < count($values); $i++) {
+			$sth->bindValue(1 + $i, $values[$i], $types[$i]);
+		}
+
+		$sth->execute();
+
+		return $sth;
+	}
 
     public function insert($parameters)
     {
