@@ -94,4 +94,19 @@ CREATEQUERY;
 		);
 		$this->assertEquals($expected, $this->db->select($parameters));
 	}
+
+	/**
+	 * @test
+	 */
+	public function SelectWithTwoConditions() {
+		$parameters = array(
+			'fields'=>array('FirstName', 'Surname'),
+			'table'=>'testtable',
+			'conditions'=>array('FirstName'=>'Philip', 'Surname'=>'Windridge')
+		);
+		$expected = array(
+			array('FirstName'=>'Philip', 'Surname'=>'Windridge')
+		);
+		$this->assertEquals($expected, $this->db->select($parameters));
+	}
 }

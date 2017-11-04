@@ -32,27 +32,30 @@ class Database
 			' FROM `' . $parameters['table'] . '`';
 
     	if (isset($parameters['conditions'])) {
-    		$conditions = array();
+    		$fields = array();
+    		$types = array();
     		$values = array();
-    		$count = 0;
+
     		foreach ($parameters['conditions'] as $field=>$value) {
-    			if(!is_numeric($value)) {
-    				$value = '\'' . $value . '\'';
+    			if(is_numeric($value)) {
+    				$types[] = \PDO::PARAM_INT;
+				} else {
+    				$types[] = \PDO::PARAM_STR;
 				}
 				$values[] = $value;
-				$conditions[] = '`' . $field . '`=:value' . $count++;
+				$fields[] = '`' . $field . '` = ?';
 			}
-    		$sql .= ' WHERE ' . implode(' AND ', $conditions) . ';';
+    		$sql .= ' WHERE ' . implode(' AND ', $fields);
 
     		$sth = $this->dbh->prepare($sql);
 
     		for ($i = 0; $i < count($parameters['conditions']); $i++) {
-    			$sth->bindParam(':value' . $i, $values[$i]);
+    			$sth->bindValue(1 + $i, $values[$i], $types[$i]);
 			}
+
 			$sth->execute();
 		} else {
-			$sth = $this->dbh->prepare($sql);
-			$sth->execute();
+			$sth = $this->dbh->query($sql);
 		}
 
 		return $sth->fetchAll(\PDO::FETCH_ASSOC);
