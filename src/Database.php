@@ -2,8 +2,8 @@
 
 namespace Toolkit;
 
-class Database
-{
+class Database {
+
     private $dbh;
 
     public function __construct($cfg)
@@ -12,90 +12,56 @@ class Database
             'mysql:host=' . $cfg['db']['host'] .
             ';dbname=' . $cfg['db']['db'],
             $cfg['db']['user'],
-            $cfg['db']['pass']);
-        ;
+            $cfg['db']['pass']);;
     }
 
     public function select($parameters)
     {
-    	$fields = array('*');
+        $fields = array ('*');
 
-    	if (isset($parameters['fields'])) {
-			if($parameters['fields'][0] != '*') {
-				$fields = array();
-				foreach($parameters['fields'] as $field) {
-					$fields[] = '`' . $field . '`';
-				}
-			}
-		}
-    	$sql = 'SELECT ' . implode(', ', $fields) .
-			' FROM `' . $parameters['table'] . '`';
+        if (isset($parameters['fields']) && $parameters['fields'][0] != '*') {
+            $fields = $this->prepareFields($parameters['fields']);
+        }
+        $sql = 'SELECT ' . implode(', ', $fields) .
+            ' FROM `' . $parameters['table'] . '`';
 
-    	if (isset($parameters['conditions']['fieldValue'])) {
-    		$sth = $this->prepareWithWhereConditions(
-    			$parameters['conditions'],
-				$sql
-			);
-		} else {
-			$sth = $this->dbh->query($sql);
-		}
+        if (isset($parameters['conditions']['fieldValue'])) {
+            $sth = $this->addWhere(
+                $parameters['conditions'],
+                $sql
+            );
+        } else {
+            $sth = $this->dbh->query($sql);
+        }
 
-		if ($sth) {
-    		return $sth->fetchAll(\PDO::FETCH_ASSOC);
-		} else {
-    		return null;
-		}
+        if ($sth) {
+            return $sth->fetchAll(\PDO::FETCH_ASSOC);
+        } else {
+            return null;
+        }
     }
-
-    private function prepareWithWhereConditions($conditions, $sql) {
-		$fields = array();
-		$types = array();
-		$values = array();
-
-		if (!isset($conditions['valueType'])) {
-			throw new \Exception(
-				'Missing value types for conditions.'
-			);
-		}
-		if (
-			count($conditions['fieldValue']) !=
-			count($conditions['valueType'])) {
-			throw new \Exception(
-				'Number of value types and their values don\'t match.'
-			);
-		}
-
-		foreach ($conditions['valueType'] as $type) {
-			if ($type == 'string') {
-				$types[] = \PDO::PARAM_STR;
-			} else {
-				$types[] = \PDO::PARAM_INT;
-			}
-		}
-
-		$count = 0;
-		foreach ($conditions['fieldValue'] as $field=>$value) {
-			$values[] = $value;
-			$fields[] = '`' . $field . '` ' .
-				$conditions['comparison'][$count++] .
-				' ?';
-		}
-		$sql .= ' WHERE ' . implode(' AND ', $fields);
-
-		$sth = $this->dbh->prepare($sql);
-
-		for ($i = 0; $i < count($values); $i++) {
-			$sth->bindValue(1 + $i, $values[$i], $types[$i]);
-		}
-
-		$sth->execute();
-
-		return $sth;
-	}
 
     public function insert($parameters)
     {
+        $recordsPlaceholders = array ();
+        $values = array();
+        foreach ($parameters['records'] as $record) {
+            $placeholders = array();
+            for ($i = 0; $i < count($record); $i++) {
+                $placeholders[] = '?';
+                $values[] = $record[$i];
+            }
+            $recordsPlaceholders[] = implode(', ', $placeholders);
+        }
 
+        $sql = 'INSERT INTO ' . $parameters['table'] .
+            ' (' . implode(', ', $this->prepareFields($parameters['fields'])) . ')' .
+            ' VALUES (' . implode('), (', $recordsPlaceholders) . ')'
+        ;
+        $sth = $this->dbh->prepare($sql);
+        $this->bindAndExecute($sth, $values);
+
+        return $sth->rowCount();
     }
 
     public function update($parameters)
@@ -106,5 +72,40 @@ class Database
     public function delete($parameters)
     {
 
+    }
+
+    private function addWhere($conditions, $sql)
+    {
+        $fields = array ();
+        $values = array ();
+
+        foreach ($conditions['fieldValue'] as $fieldValue) {
+            $values[] = current($fieldValue);
+            $fields[] = '`' . key($fieldValue) . '` ' .
+                $fieldValue['join'] .
+                ' ?';
+        }
+        $sql .= ' WHERE ' . implode(' AND ', $fields);
+
+        $sth = $this->dbh->prepare($sql);
+        $this->bindAndExecute($sth, $values);
+
+        return $sth;
+    }
+
+    private function prepareFields($fields)
+    {
+        $preparedFields = array ();
+        foreach ($fields as $field) {
+            $preparedFields[] = '`' . $field . '`';
+        }
+        return $preparedFields;
+    }
+
+    private function bindAndExecute(\PDOStatement $sth, $values) {
+        for ($i = 0; $i < count($values); $i++) {
+            $sth->bindValue($i + 1, $values[$i]);
+        }
+        $sth->execute();
     }
 }

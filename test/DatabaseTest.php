@@ -9,24 +9,25 @@
 use \Toolkit\Database;
 
 class DatabaseTest extends PHPUnit_Framework_TestCase {
-	private $db;
-	private $dbh;
 
-	protected function setUp() {
-		$cfg['db']['host'] = 'localhost';
-		$cfg['db']['db'] = 'test';
-		$cfg['db']['user'] = 'test';
-		$cfg['db']['pass'] = 'test';
+    private $db;
+    private $dbh;
 
+    protected function setUp()
+    {
+        $cfg['db']['host'] = 'localhost';
+        $cfg['db']['db'] = 'test';
+        $cfg['db']['user'] = 'test';
+        $cfg['db']['pass'] = 'test';
 
-		$this->dbh = new PDO(
-			'mysql:host=' . $cfg['db']['host'] .
-			';dbname=' . $cfg['db']['db'],
-			$cfg['db']['user'],
-			$cfg['db']['pass']
-		);
+        $this->dbh = new PDO(
+            'mysql:host=' . $cfg['db']['host'] .
+            ';dbname=' . $cfg['db']['db'],
+            $cfg['db']['user'],
+            $cfg['db']['pass']
+        );
 
-		$sqlTable = <<<CREATETABLE
+        $sqlTable = <<<CREATETABLE
             CREATE TABLE IF NOT EXISTS `testtable` (
               `Id` int(4) NOT NULL AUTO_INCREMENT,
               `FirstName` varchar(50) NOT NULL,
@@ -35,146 +36,221 @@ class DatabaseTest extends PHPUnit_Framework_TestCase {
             ) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=3 ;
 CREATETABLE;
 
-		$sqlInsert = <<<CREATEQUERY
+        $sqlInsert = <<<CREATEQUERY
             INSERT INTO `testtable` (`Id`, `FirstName`, `Surname`) VALUES
             (1, 'Philip', 'Windridge'),
             (2, 'Robin', 'Oldham');
 CREATEQUERY;
 
-		$this->dbh->query($sqlTable);
-		$this->dbh->query($sqlInsert);
+        $this->dbh->query($sqlTable);
+        $this->dbh->query($sqlInsert);
 
-		$this->db = new Database($cfg);
-	}
+        $this->db = new Database($cfg);
+    }
 
-	public function tearDown() {
-		$this->dbh->query('DROP TABLE `testtable`');
-	}
+    public function tearDown()
+    {
+        $this->dbh->query('DROP TABLE `testtable`');
+    }
 
-	/**
-	 * @test
-	 */
-	public function SimpleSelect() {
-		$parameters = array(
-			'fields' => array('*'),
-			'table' => 'testtable'
-		);
-		$expected = array(
-			array('Id' => 1, 'FirstName' => 'Philip', 'Surname' => 'Windridge'),
-			array('Id' => 2, 'FirstName' => 'Robin', 'Surname' => 'Oldham')
-		);
-		$this->assertEquals($expected, $this->db->select($parameters));
-	}
+    /**
+     * @test/
+     */
+    public function QueryReturnsNoRecords()
+    {
+        $parameters = array (
+            'fields' => array ('*'),
+            'table' => 'No table'
+        );
+        $this->assertNull($this->db->select($parameters));
+    }
 
-	/**
-	 * @test
-	 */
-	public function SelectWithTwoFields() {
-		$parameters = array(
-			'fields' => array('FirstName', 'Surname'),
-			'table' => 'testtable'
-		);
-		$expected = array(
-			array('FirstName' => 'Philip', 'Surname' => 'Windridge'),
-			array('FirstName' => 'Robin', 'Surname' => 'Oldham')
-		);
-		$this->assertEquals($expected, $this->db->select($parameters));
-	}
+    /**
+     * @test
+     * @expectedException PDOException
+     */
+    public function BadConnectionInformation()
+    {
+        $cfg['db']['host'] = 'Badlocalhost';
+        $cfg['db']['db'] = 'SomeDatabase';
+        $cfg['db']['user'] = 'SomeUser';
+        $cfg['db']['pass'] = 'SomePassword';
 
-	/**
-	 * @test
-	 */
-	public function SelectWithSimpleCondition() {
-		$parameters = array(
-			'fields' => array('FirstName', 'Surname'),
-			'table' => 'testtable',
-			'conditions' => array(
-				'fieldValue' => array('FirstName' => 'Robin'),
-				'comparison' => array('='),
-				'valueType' => array('string')
-			)
-		);
-		$expected = array(
-			array('FirstName' => 'Robin', 'Surname' => 'Oldham')
-		);
-		$this->assertEquals($expected, $this->db->select($parameters));
-	}
+        $db = new Database($cfg);
+    }
 
-	/**
-	 * @test
-	 */
-	public function SelectWithTwoConditions() {
-		$parameters = array(
-			'fields' => array('FirstName', 'Surname'),
-			'table' => 'testtable',
-			'conditions' => array(
-				'fieldValue' => array(
-					'FirstName' => 'Philip', 'Surname' => 'Windridge'
-				),
-				'comparison' => array('=', '='),
-				'valueType' => array('string', 'string')
-			)
-		);
-		$expected = array(
-			array('FirstName' => 'Philip', 'Surname' => 'Windridge')
-		);
-		$this->assertEquals($expected, $this->db->select($parameters));
-	}
+    /**
+     * @test
+     */
+    public function SimpleSelect()
+    {
+        $parameters = array (
+            'fields' => array ('*'),
+            'table' => 'testtable'
+        );
+        $expected = array (
+            array ('Id' => 1, 'FirstName' => 'Philip', 'Surname' => 'Windridge'),
+            array ('Id' => 2, 'FirstName' => 'Robin', 'Surname' => 'Oldham')
+        );
+        $this->assertEquals($expected, $this->db->select($parameters));
+    }
 
-	/**
-	 * @test
-	 */
-	public function QueryReturnsNoRecords() {
-		$parameters = array(
-			'fields' => array('*'),
-			'table' => 'No table'
-		);
-		$this->assertNull($this->db->select($parameters));
-	}
+    /**
+     * @test
+     */
+    public function SelectWithTwoFields()
+    {
+        $parameters = array (
+            'fields' => array ('FirstName', 'Surname'),
+            'table' => 'testtable'
+        );
+        $expected = array (
+            array ('FirstName' => 'Philip', 'Surname' => 'Windridge'),
+            array ('FirstName' => 'Robin', 'Surname' => 'Oldham')
+        );
+        $this->assertEquals($expected, $this->db->select($parameters));
+    }
 
-	/**
-	 * @test
-	 * @expectedException PDOException
-	 */
-	public function BadConnectionInformation() {
-		$cfg['db']['host'] = 'Badlocalhost';
-		$cfg['db']['db'] = 'SomeDatabase';
-		$cfg['db']['user'] = 'SomeUser';
-		$cfg['db']['pass'] = 'SomePassword';
+    /**
+     * @test
+     */
+    public function SelectWithSimpleCondition()
+    {
+        $parameters = array (
+            'fields' => array ('FirstName', 'Surname'),
+            'table' => 'testtable',
+            'conditions' => array (
+                'fieldValue' => array (
+                    array ('FirstName' => 'Robin', 'join' => '=')
+                )
+            )
+        );
+        $expected = array (
+            array ('FirstName' => 'Robin', 'Surname' => 'Oldham')
+        );
+        $this->assertEquals($expected, $this->db->select($parameters));
+    }
 
-		$db = new Database($cfg);
-	}
+    /**
+     * @test
+     */
+    public function SelectWithSimpleOtherThanEqualsCondition()
+    {
+        $parameters = array (
+            'fields' => array ('FirstName', 'Surname'),
+            'table' => 'testtable',
+            'conditions' => array (
+                'fieldValue' => array (
+                    array ('Id' => '2', 'join' => '<=')
+                )
+            )
+        );
+        $expected = array (
+            array ('FirstName' => 'Philip', 'Surname' => 'Windridge'),
+            array ('FirstName' => 'Robin', 'Surname' => 'Oldham')
+        );
+        $this->assertEquals($expected, $this->db->select($parameters));
+    }
 
-	/**
-	 * @test
-	 * @expectedException Exception
-	 * @expectedExceptionMessage Missing value types for conditions.
-	 */
-	public function WhereConditionWithNoValueTypesException() {
-		$parameters = array(
-			'table' => 'testtable',
-			'conditions' => array(
-				'fieldValue' => array('FirstName' => 'Philip'),
-				'comparison' => array('=')
-			)
-		);
-		$this->db->select($parameters);
-	}
+    /**
+     * @test
+     */
+    public function SelectWithLikeCondition()
+    {
+        $parameters = array (
+            'fields' => array ('FirstName', 'Surname'),
+            'table' => 'testtable',
+            'conditions' => array (
+                'fieldValue' => array (
+                    array ('FirstName' => '%obi%', 'join' => 'LIKE')
+                )
+            )
+        );
+        $expected = array (
+            array ('FirstName' => 'Robin', 'Surname' => 'Oldham')
+        );
+        $this->assertEquals($expected, $this->db->select($parameters));
+    }
 
-	/**
-	 * @test
-	 * @expectedException Exception
-	 * @expectedExceptionMessage Number of value types and their values don't match
-	 */
-	public function MismatchBetweenValueTypesAndValuesException() {
-		$parameters = array(
-			'table' => 'testtable',
-			'conditions' => array(
-				'fieldValue' => array('FirstName' => 'Philip', 'Surname' => 'Windridge'),
-				'comparison' => array('='),
-				'valueType' => array('string')
-			)
-		);
-		$this->db->select($parameters);
-	}
+    /**
+     * @test
+     */
+    public function SelectWithTwoConditions()
+    {
+        $parameters = array (
+            'fields' => array ('FirstName', 'Surname'),
+            'table' => 'testtable',
+            'conditions' => array (
+                'fieldValue' => array (
+                    array ('FirstName' => 'Philip', 'join' => '='),
+                    array ('Surname' => 'Windridge', 'join' => '=')
+                )
+            )
+        );
+        $expected = array (
+            array ('FirstName' => 'Philip', 'Surname' => 'Windridge')
+        );
+        $this->assertEquals($expected, $this->db->select($parameters));
+    }
+
+    /**
+     * @test
+     */
+    public function InsertOneRecord()
+    {
+        $parameters = array (
+            'fields' => array ('FirstName', 'Surname'),
+            'table' => 'testtable',
+            'records' => array (
+                array ('Fiona', 'Knight')
+            )
+        );
+        $this->assertEquals(1, $this->db->insert($parameters));
+    }
+
+    /**
+     * @test
+     */
+    public function InsertTwoRecords()
+    {
+        $parameters = array (
+            'fields' => array ('FirstName', 'Surname'),
+            'table' => 'testtable',
+            'records' => array (
+                array ('Fiona', 'Knight'),
+                array('Jan', 'Lawton')
+            )
+        );
+        $this->assertEquals(2, $this->db->insert($parameters));
+    }
+
+    /**
+     * @test
+     */
+    public function InsertNoRecords()
+    {
+        $parameters = array (
+            'fields' => array ('NotAField', 'NotAField2'),
+            'table' => 'testtable',
+            'records' => array (
+                array ('Fiona', 'Knight')
+            )
+        );
+        $this->assertEquals(0, $this->db->insert($parameters));
+    }
+
+    /**
+     * @test
+     */
+    public function InsertDuplicateRecordReturnsZero()
+    {
+        $parameters = array (
+            'fields' => array ('Id', 'FirstName', 'Surname'),
+            'table' => 'testtable',
+            'records' => array (
+                array (1, 'SomeFirstName', 'SomeLastName')
+            )
+        );
+        $this->assertEquals(0, $this->db->insert($parameters));
+    }
 }
