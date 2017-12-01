@@ -120,9 +120,7 @@ CREATEQUERY;
             'fields' => array ('FirstName', 'Surname'),
             'table' => 'testtable',
             'conditions' => array (
-                'fieldValue' => array (
-                    array ('FirstName' => 'Robin', 'join' => '=')
-                )
+                array ('FirstName' => 'Robin', 'join' => '=')
             )
         );
         $expected = array (
@@ -140,9 +138,7 @@ CREATEQUERY;
             'fields' => array ('FirstName', 'Surname'),
             'table' => 'testtable',
             'conditions' => array (
-                'fieldValue' => array (
-                    array ('Id' => '2', 'join' => '<=')
-                )
+                array ('Id' => '2', 'join' => '<=')
             )
         );
         $expected = array (
@@ -161,9 +157,7 @@ CREATEQUERY;
             'fields' => array ('FirstName', 'Surname'),
             'table' => 'testtable',
             'conditions' => array (
-                'fieldValue' => array (
-                    array ('FirstName' => '%obi%', 'join' => 'LIKE')
-                )
+                array ('FirstName' => '%obi%', 'join' => 'LIKE')
             )
         );
         $expected = array (
@@ -181,10 +175,8 @@ CREATEQUERY;
             'fields' => array ('FirstName', 'Surname'),
             'table' => 'testtable',
             'conditions' => array (
-                'fieldValue' => array (
-                    array ('FirstName' => 'Philip', 'join' => '='),
-                    array ('Surname' => 'Windridge', 'join' => '=')
-                )
+                array ('FirstName' => 'Philip', 'join' => '='),
+                array ('Surname' => 'Windridge', 'join' => '=')
             )
         );
         $expected = array (
@@ -218,7 +210,7 @@ CREATEQUERY;
             'table' => 'testtable',
             'records' => array (
                 array ('Fiona', 'Knight'),
-                array('Jan', 'Lawton')
+                array ('Jan', 'Lawton')
             )
         );
         $this->assertEquals(2, $this->db->insert($parameters));
@@ -252,5 +244,19 @@ CREATEQUERY;
             )
         );
         $this->assertEquals(0, $this->db->insert($parameters));
+    }
+
+    /**
+     * @test
+     */
+    public function UpdateOneFieldOneRecord() {
+        $parameters = array(
+            'table' => 'testtable',
+            'fieldValues' => array('Surname'=>'Spartacus'),
+            'conditions' => array (
+                array ('FirstName' => 'Philip', 'join' => '=')
+            )
+        );
+        $this->assertEquals(1, $this->db->update($parameters));
     }
 }

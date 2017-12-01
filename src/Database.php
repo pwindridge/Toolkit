@@ -23,30 +23,38 @@ class Database {
             $fields = $this->prepareFields($parameters['fields']);
         }
         $sql = 'SELECT ' . implode(', ', $fields) .
-            ' FROM `' . $parameters['table'] . '`';
+            ' FROM `' . $parameters['table'] . '`' .
+            $this->addWhere($parameters);
 
-        if (isset($parameters['conditions']['fieldValue'])) {
-            $sth = $this->addWhere(
-                $parameters['conditions'],
-                $sql
-            );
-        } else {
-            $sth = $this->dbh->query($sql);
+        $sth = $this->dbh->prepare($sql);
+
+        if (isset($parameters['conditions'])) {
+            $this->bind($sth, $this->getValues($parameters['conditions']));
         }
 
-        if ($sth) {
+        $sth->execute();
+
+        if ($sth->rowCount()) {
             return $sth->fetchAll(\PDO::FETCH_ASSOC);
         } else {
             return null;
         }
     }
 
+    private function getValues(Array $arr) {
+        $values = array();
+        foreach ($arr as $value) {
+            $values[] = current($value);
+        }
+        return $values;
+    }
+
     public function insert($parameters)
     {
         $recordsPlaceholders = array ();
-        $values = array();
+        $values = array ();
         foreach ($parameters['records'] as $record) {
-            $placeholders = array();
+            $placeholders = array ();
             for ($i = 0; $i < count($record); $i++) {
                 $placeholders[] = '?';
                 $values[] = $record[$i];
@@ -56,17 +64,33 @@ class Database {
 
         $sql = 'INSERT INTO ' . $parameters['table'] .
             ' (' . implode(', ', $this->prepareFields($parameters['fields'])) . ')' .
-            ' VALUES (' . implode('), (', $recordsPlaceholders) . ')'
-        ;
+            ' VALUES (' . implode('), (', $recordsPlaceholders) . ')';
         $sth = $this->dbh->prepare($sql);
-        $this->bindAndExecute($sth, $values);
+        $this->bind($sth, $values)->execute();
 
         return $sth->rowCount();
     }
 
     public function update($parameters)
     {
+        $setString = '';
+        $values = array ();
+        foreach ($parameters['fieldValues'] as $field => $value) {
+            $setString = ' `' . $field . '` = ?';
+            $values[] = $value;
+        }
 
+        $sql = 'UPDATE `' . $parameters['table'] .
+            '` SET' . $setString .
+            $this->addWhere($parameters)
+        ;
+        $sth = $this->dbh->prepare($sql);
+
+        $values = array_merge($values, $this->getValues($parameters['conditions']));
+        $this->bind($sth, $values);
+        $sth->execute();
+
+        return $sth->rowCount();
     }
 
     public function delete($parameters)
@@ -74,23 +98,21 @@ class Database {
 
     }
 
-    private function addWhere($conditions, $sql)
+    private function addWhere($parameters)
     {
-        $fields = array ();
-        $values = array ();
+        $sql = '';
+        if (! isset($parameters['conditions'])) {
+            return '';
+        } else {
+            $fields = array ();
 
-        foreach ($conditions['fieldValue'] as $fieldValue) {
-            $values[] = current($fieldValue);
-            $fields[] = '`' . key($fieldValue) . '` ' .
-                $fieldValue['join'] .
-                ' ?';
+            foreach ($parameters['conditions'] as $condition) {
+                $fields[] = '`' . key($condition) . '` ' .
+                    $condition['join'] .
+                    ' ?';
+            }
+            return ' WHERE ' . implode(' AND ', $fields);
         }
-        $sql .= ' WHERE ' . implode(' AND ', $fields);
-
-        $sth = $this->dbh->prepare($sql);
-        $this->bindAndExecute($sth, $values);
-
-        return $sth;
     }
 
     private function prepareFields($fields)
@@ -102,10 +124,11 @@ class Database {
         return $preparedFields;
     }
 
-    private function bindAndExecute(\PDOStatement $sth, $values) {
+    private function bind(\PDOStatement $sth, $values)
+    {
         for ($i = 0; $i < count($values); $i++) {
             $sth->bindValue($i + 1, $values[$i]);
         }
-        $sth->execute();
+        return $sth;
     }
 }
