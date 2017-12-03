@@ -249,10 +249,11 @@ CREATEQUERY;
     /**
      * @test
      */
-    public function UpdateOneFieldOneRecord() {
-        $parameters = array(
+    public function UpdateOneFieldOneRecord()
+    {
+        $parameters = array (
             'table' => 'testtable',
-            'fieldValues' => array('Surname'=>'Spartacus'),
+            'fieldValues' => array ('Surname' => 'Spartacus'),
             'conditions' => array (
                 array ('FirstName' => 'Philip', 'join' => '=')
             )
@@ -263,11 +264,36 @@ CREATEQUERY;
     /**
      * @test
      */
-    public function UpdateOneFieldAllRecords() {
-        $parameters = array(
+    public function UpdateOneFieldAllRecords()
+    {
+        $parameters = array (
             'table' => 'testtable',
-            'fieldValues' => array('Surname'=>'Spartacus')
+            'fieldValues' => array ('Surname' => 'Spartacus')
         );
         $this->assertEquals(2, $this->db->update($parameters));
+    }
+
+    /**
+     * @test
+     */
+    public function DeleteAllRecords()
+    {
+        $parameters = array(
+            'table' => 'testtable'
+        );
+        $this->assertEquals(2, $this->db->delete($parameters));
+    }
+
+    /**
+     * @test
+     */
+    public function DeleteOneRecord()
+    {
+        $parameters = array(
+            'table' => 'testtable',
+            'conditions' => array(
+                array ('Id' => 1, 'join' => '=')
+            )
+        );
     }
 }

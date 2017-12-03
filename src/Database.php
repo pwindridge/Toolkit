@@ -90,12 +90,19 @@ class Database {
 
     public function delete(Array $parameters)
     {
+        $sql = 'DELETE FROM `' . $parameters['table'] . '`' . $this->addWhere($parameters);
 
+        $sth = $this->dbh->prepare($sql);
+
+        if(isset($parameters['conditions'])) {
+            $this->bind($sth, $this->getValues($parameters['conditions']));
+        }
+        $sth->execute();
+        return $sth->rowCount();
     }
 
     private function addWhere(Array $parameters)
     {
-        $sql = '';
         if (! isset($parameters['conditions'])) {
             return '';
         } else {
