@@ -259,4 +259,15 @@ CREATEQUERY;
         );
         $this->assertEquals(1, $this->db->update($parameters));
     }
+
+    /**
+     * @test
+     */
+    public function UpdateOneFieldAllRecords() {
+        $parameters = array(
+            'table' => 'testtable',
+            'fieldValues' => array('Surname'=>'Spartacus')
+        );
+        $this->assertEquals(2, $this->db->update($parameters));
+    }
 }

@@ -41,15 +41,7 @@ class Database {
         }
     }
 
-    private function getValues(Array $arr) {
-        $values = array();
-        foreach ($arr as $value) {
-            $values[] = current($value);
-        }
-        return $values;
-    }
-
-    public function insert($parameters)
+    public function insert(Array $parameters)
     {
         $recordsPlaceholders = array ();
         $values = array ();
@@ -71,7 +63,7 @@ class Database {
         return $sth->rowCount();
     }
 
-    public function update($parameters)
+    public function update(Array $parameters)
     {
         $setString = '';
         $values = array ();
@@ -86,19 +78,22 @@ class Database {
         ;
         $sth = $this->dbh->prepare($sql);
 
-        $values = array_merge($values, $this->getValues($parameters['conditions']));
+        if (isset($parameters['conditions'])) {
+            $values = array_merge($values, $this->getValues($parameters['conditions']));
+        }
         $this->bind($sth, $values);
+
         $sth->execute();
 
         return $sth->rowCount();
     }
 
-    public function delete($parameters)
+    public function delete(Array $parameters)
     {
 
     }
 
-    private function addWhere($parameters)
+    private function addWhere(Array $parameters)
     {
         $sql = '';
         if (! isset($parameters['conditions'])) {
@@ -115,7 +110,7 @@ class Database {
         }
     }
 
-    private function prepareFields($fields)
+    private function prepareFields(Array $fields)
     {
         $preparedFields = array ();
         foreach ($fields as $field) {
@@ -124,7 +119,15 @@ class Database {
         return $preparedFields;
     }
 
-    private function bind(\PDOStatement $sth, $values)
+    private function getValues(Array $arr) {
+        $values = array();
+        foreach ($arr as $value) {
+            $values[] = current($value);
+        }
+        return $values;
+    }
+
+    private function bind(\PDOStatement $sth, Array $values)
     {
         for ($i = 0; $i < count($values); $i++) {
             $sth->bindValue($i + 1, $values[$i]);
