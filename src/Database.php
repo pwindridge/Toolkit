@@ -12,7 +12,7 @@ class Database {
             'mysql:host=' . $cfg['db']['host'] .
             ';dbname=' . $cfg['db']['db'],
             $cfg['db']['user'],
-            $cfg['db']['pass']);;
+            $cfg['db']['pass']);
     }
 
     public function select($parameters)
@@ -58,8 +58,10 @@ class Database {
             ' (' . implode(', ', $this->prepareFields($parameters['fields'])) . ')' .
             ' VALUES (' . implode('), (', $recordsPlaceholders) . ')';
         $sth = $this->dbh->prepare($sql);
+        print_r($sth->queryString);
+        echo '<br>';
+        print_r($values);
         $this->bind($sth, $values)->execute();
-
         return $sth->rowCount();
     }
 
@@ -68,10 +70,9 @@ class Database {
         $setString = '';
         $values = array ();
         foreach ($parameters['fieldValues'] as $field => $value) {
-            $setString = ' `' . $field . '` = ?';
+            $setString .= ' `' . $field . '` = ?';
             $values[] = $value;
         }
-
         $sql = 'UPDATE `' . $parameters['table'] .
             '` SET' . $setString .
             $this->addWhere($parameters)
