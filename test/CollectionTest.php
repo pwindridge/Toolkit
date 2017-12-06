@@ -81,31 +81,27 @@ class CollectionTest extends PHPUnit_Framework_TestCase {
         $this->assertEquals(array(), $this->coll->keys());
     }
 
-//    public function testIteration() {
-//        $coll = new Collection();
-//        $coll->addItem('HelloWorld');
-//
-//        $count = 0;
-//
-//        foreach($coll as $item) {
-//            $count++;
-//        }
-//        $this->assertEquals(1, $count);
-//    }
+    public function testIteration() {
+        $coll = new Collection();
+        $coll->addItem('HelloWorld');
 
-//	public function testIteratorRemoveItem()
-//	{
-//		$coll = new Collection();
-//		$coll->addItem('HelloWorld1', 'msg1');
-//		$coll->addItem('HelloWorld2');
-//
-//		foreach($coll as $key=>$item) {
-//			if($key == 0) {
-//				$coll->removeItem($key);
-//			}
-//		}
-//		$actual = $coll->key();
-//		$this->assertEquals('msg1', $actual);
-//	}
+        $count = 0;
 
+        foreach($coll as $item) {
+            $count++;
+        }
+        $this->assertEquals(1, $count);
+    }
+
+    public function testAssociationIteration() {
+        $coll = new Collection();
+        $coll->addItem('HelloWorld', 'msg1');
+
+        $count = 0;
+        $actual = '';
+        foreach($coll as $key=>$item) {
+            $actual = $key;
+        }
+        $this->assertEquals('msg1', $actual);
+    }
 }

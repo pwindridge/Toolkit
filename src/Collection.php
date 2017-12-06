@@ -3,9 +3,15 @@
 namespace Toolkit;
 
 
-class Collection implements \ArrayAccess {
+class Collection implements \ArrayAccess, \Iterator {
 
     private $members;
+    private $position;
+
+    public function __construct()
+    {
+        $this->position = $this->position = 0;
+    }
 
     /**
      * @param $item
@@ -83,6 +89,11 @@ class Collection implements \ArrayAccess {
         return $this->getItem($offset);
     }
 
+    /**
+     * @param mixed $offset
+     * @param mixed $value
+     * @throws InvalidKeyException if offset is already in the collection
+     */
     public function offsetSet($offset, $value)
     {
         $this->addItem($value, $offset);
@@ -95,5 +106,34 @@ class Collection implements \ArrayAccess {
     public function offsetUnset($offset)
     {
         $this->removeItem($offset);
+    }
+
+    /**
+     * @return mixed
+     * @throws InvalidKeyException if key for item isn't in the collection
+     */
+    public function current()
+    {
+        return $this->getItem($this->key());
+    }
+
+    public function key()
+    {
+        return $this->keys()[$this->position];
+    }
+
+    public function next()
+    {
+        ++$this->position;
+    }
+
+    public function rewind()
+    {
+        $this->position = 0;
+    }
+
+    public function valid()
+    {
+        return count($this->keys()) > $this->position;
     }
 }
