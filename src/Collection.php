@@ -54,6 +54,20 @@ class Collection implements \ArrayAccess {
         return isset($this->members[$key]);
     }
 
+    public function keys()
+    {
+        if ($this->length() > 0) {
+            return array_keys($this->members);
+        } else {
+            return array();
+        }
+    }
+
+    public function length()
+    {
+        return count($this->members);
+    }
+
     public function offsetExists($offset)
     {
         return $this->exists($offset);
