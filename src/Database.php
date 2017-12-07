@@ -58,9 +58,7 @@ class Database {
             ' (' . implode(', ', $this->prepareFields($parameters['fields'])) . ')' .
             ' VALUES (' . implode('), (', $recordsPlaceholders) . ')';
         $sth = $this->dbh->prepare($sql);
-        print_r($sth->queryString);
-        echo '<br>';
-        print_r($values);
+
         $this->bind($sth, $values)->execute();
         return $sth->rowCount();
     }

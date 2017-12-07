@@ -52,7 +52,7 @@ class DbSession implements \SessionHandlerInterface {
                     'sess_data' => $session_data, 'modified' => time()
                 ),
                 'conditions' => array (
-                    array ('session_id' => $session_id, 'join' => '=')
+                    array ('sess_id' => $session_id, 'join' => '=')
                 )
             );
             $this->db->update($updateParameters);
@@ -65,7 +65,7 @@ class DbSession implements \SessionHandlerInterface {
         $parameters = array (
             'table' => 'sessions',
             'conditions' => array (
-                array ('session_id' => $session_id, 'join' => '=')
+                array ('sess_id' => $session_id, 'join' => '=')
             )
         );
         return $this->db->delete($parameters) == 1 ? true : false;
