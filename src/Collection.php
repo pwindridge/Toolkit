@@ -55,6 +55,10 @@ class Collection implements \ArrayAccess, \Iterator {
         unset($this->members[$key]);
     }
 
+    public function getValuesAsArray() {
+        return $this->members;
+    }
+
     public function exists($key)
     {
         return isset($this->members[$key]);
