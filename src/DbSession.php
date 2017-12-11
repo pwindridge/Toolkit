@@ -45,6 +45,7 @@ class DbSession implements \SessionHandlerInterface {
                 array ($session_id, $session_data, time())
             )
         );
+
         if (! $this->db->insert($parameters)) {
             $updateParameters = array(
                 'table' => 'sessions',

@@ -65,14 +65,14 @@ class Database {
 
     public function update(Array $parameters)
     {
-        $setString = '';
+        $set = [];
         $values = array ();
         foreach ($parameters['fieldValues'] as $field => $value) {
-            $setString .= ' `' . $field . '` = ?';
+            $set[] = '`' . $field . '` = ?';
             $values[] = $value;
         }
         $sql = 'UPDATE `' . $parameters['table'] .
-            '` SET' . $setString .
+            '` SET ' . implode(', ', $set) .
             $this->addWhere($parameters)
         ;
         $sth = $this->dbh->prepare($sql);
