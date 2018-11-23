@@ -91,6 +91,7 @@ class DatabaseSession implements \SessionHandlerInterface {
                 $parameters['conditions'] = [
                     'conditions' => [['sess_id', '=', $session_id]]
                 ];
+                $this->db->update($parameters);
             }
         }
         return true;
