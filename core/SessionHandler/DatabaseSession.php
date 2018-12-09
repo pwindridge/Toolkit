@@ -88,9 +88,7 @@ class DatabaseSession implements \SessionHandlerInterface {
                     'sess_data' => $session_data,
                     'modified' => time()
                 ];
-                $parameters['conditions'] = [
-                    'conditions' => [['sess_id', '=', $session_id]]
-                ];
+                $parameters['conditions'] = [['sess_id', '=', $session_id]];
                 $this->db->update($parameters);
             }
         }
